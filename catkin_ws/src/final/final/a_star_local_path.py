@@ -3,6 +3,8 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from squaternion import Quaternion
 from nav_msgs.msg import Odometry,Path
+from std_msgs.msg import Int8MultiArray
+
 from math import pi,cos,sin,sqrt
 
 # a_star_local_path 노드는 a_star 노드에서 나오는 전역경로(/global_path)를 받아서, 로봇이 실제 주행하는 지역경로(/local_path)를 publish 하는 노드입니다.
@@ -24,7 +26,8 @@ class astarLocalpath(Node):
         # 로직 1. publisher, subscriber 만들기
         self.local_path_pub = self.create_publisher(Path, 'local_path', 10)
         self.subscription = self.create_subscription(Path,'/global_path',self.path_callback,10)
-        self.subscription = self.create_subscription(Odometry,'/odom',self.listener_callback,10)
+        self.odom_sub = self.create_subscription(Odometry,'/odom',self.listener_callback,10)
+        self.arrive_sub = self.create_subscription(Int8MultiArray, '/arrive_vel', self.arrive_callback, 1)
         self.odom_msg=Odometry()
         self.is_odom=False
         self.is_path=False
@@ -52,12 +55,14 @@ class astarLocalpath(Node):
 
         self.is_path= True
         self.global_path_msg= msg
-        
+    
+    
+    def arrive_callback(self, msg):
+        self.is_path = msg.data[0]
 
         
     def timer_callback(self):
         if self.is_odom and self.is_path ==True:
-            
             local_path_msg=Path()
             local_path_msg.header.frame_id='/map'
             

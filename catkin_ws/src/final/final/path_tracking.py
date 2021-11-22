@@ -5,6 +5,7 @@ from geometry_msgs.msg import Twist,Point
 from ssafy_msgs.msg import TurtlebotStatus
 from squaternion import Quaternion
 from nav_msgs.msg import Odometry,Path
+from std_msgs.msg import Int8MultiArray
 from math import pi,cos,sin,sqrt,atan2
 import numpy as np
 
@@ -27,6 +28,7 @@ class followTheCarrot(Node):
     def __init__(self):
         super().__init__('path_tracking')
         self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.arrive_pub = self.create_publisher(Int8MultiArray, 'arrive_vel', 10)
         self.subscription = self.create_subscription(Odometry,'/odom',self.odom_callback,10)
         self.status_sub = self.create_subscription(TurtlebotStatus,'/turtlebot_status',self.status_callback,10)
         self.path_sub = self.create_subscription(Path,'/local_path',self.path_callback,10)
@@ -44,6 +46,8 @@ class followTheCarrot(Node):
         self.robot_yaw=0.0
         self.path_msg=Path()
         self.cmd_msg=Twist()
+
+        self.arrive_msg = Int8MultiArray()
 
         # 로직 2. 파라미터 설정
         self.lfd=0.1
@@ -137,6 +141,8 @@ class followTheCarrot(Node):
                     self.is_check = 2
                 self.cmd_msg.linear.x=0.0
                 self.cmd_msg.angular.z=0.0
+                self.arrive_msg.data = [False]
+                self.arrive_pub.publish(self.arrive_msg)
 
             # if (self.is_check == 1):
             self.cmd_pub.publish(self.cmd_msg)

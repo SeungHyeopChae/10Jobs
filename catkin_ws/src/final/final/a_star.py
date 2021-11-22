@@ -5,6 +5,7 @@ import os
 from geometry_msgs.msg import Twist,Pose,PoseStamped
 from squaternion import Quaternion
 from nav_msgs.msg import Odometry,OccupancyGrid,MapMetaData,Path
+
 from math import pi,cos,sin
 from collections import deque
 
@@ -32,6 +33,7 @@ class a_star(Node):
         self.odom_sub = self.create_subscription(Odometry,'odom',self.odom_callback,1)
         # self.goal_sub = self.create_subscription(PoseStamped,'goal_pose',self.goal_callback,1)
         self.goal_sub = self.create_subscription(Twist, 'iot_pose', self.goal_callback,1)
+        
         self.a_star_pub= self.create_publisher(Path, 'global_path', 1)
         
         self.map_msg=OccupancyGrid()
@@ -40,7 +42,6 @@ class a_star(Node):
         self.is_odom=False
         self.is_found_path=False
         self.is_grid_update=False
-
 
         # 로직 2. 파라미터 설정
         self.goal = [184,224] 
@@ -64,6 +65,7 @@ class a_star(Node):
         '''
         map_to_grid= np.array(self.map_msg.data)
         self.grid= np.reshape(map_to_grid,(350, 350), order='F')
+
 
 
     def pose_to_grid_cell(self,x,y):
@@ -117,7 +119,7 @@ class a_star(Node):
 
             # goal_x = -7.20421
             # goal_y = -0.935446
-
+            self.is_arrive = False
             goal_x = msg.angular.x
             goal_y = msg.angular.y
 
